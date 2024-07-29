@@ -24,6 +24,8 @@
 #include <message_filters/sync_policies/approximate_time.h>
 #include <image_transport/subscriber_filter.h>
 #include <image_transport/image_transport.h>
+// #include <compressed_image_transport/compressed_subscriber.h>
+
 #include <sensor_msgs/image_encodings.h>
 #include <cv_bridge/cv_bridge.h>
 #include <vikit/params_helper.h>
@@ -398,6 +400,39 @@ void SvoInterface::stereoCallback(
   imageCallbackPostprocessing();
 }
 
+void SvoInterface::stereoCompressedCallback(
+    const sensor_msgs::CompressedImageConstPtr& msg0,
+    const sensor_msgs::CompressedImageConstPtr& msg1)
+{
+  // ROS_INFO_STREAM("callback");
+  if(idle_)
+    return;
+
+  cv::Mat img0, img1;
+  try {
+    img0 = cv::imdecode(cv::Mat(msg0->data),1);
+    img1 = cv::imdecode(cv::Mat(msg1->data),1);
+  } catch (cv_bridge::Exception& e) {
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+  }
+
+  if(!setImuPrior(msg0->header.stamp.toNSec()))
+  {
+    VLOG(3) << "Could not align gravity! Attempting again in next iteration.";
+    return;
+  }
+
+  imageCallbackPreprocessing(msg0->header.stamp.toNSec());
+
+  processImageBundle({img0, img1}, msg0->header.stamp.toNSec());
+  publishResults({img0, img1}, msg0->header.stamp.toNSec());
+
+  if(svo_->stage() == Stage::kPaused && automatic_reinitialization_)
+    svo_->start();
+
+  imageCallbackPostprocessing();
+}
+
 void SvoInterface::imuCallback(const sensor_msgs::ImuConstPtr& msg)
 {
   const Eigen::Vector3d omega_imu(
@@ -506,8 +541,9 @@ void SvoInterface::monoLoop()
 
 void SvoInterface::stereoLoop()
 {
-  typedef message_filters::sync_policies::ExactTime<sensor_msgs::Image, sensor_msgs::Image> ExactPolicy;
-  typedef message_filters::Synchronizer<ExactPolicy> ExactSync;
+  // typedef message_filters::sync_policies::ExactTime<sensor_msgs::Image, sensor_msgs::Image> ExactPolicy;
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::CompressedImage, sensor_msgs::CompressedImage> mySyncPolicy;
+  typedef message_filters::Synchronizer<mySyncPolicy> mySync;
 
   ros::NodeHandle nh(nh_, "image_thread");
   ros::CallbackQueue queue;
@@ -517,10 +553,20 @@ void SvoInterface::stereoLoop()
   std::string cam0_topic(vk::param<std::string>(pnh_, "cam0_topic", "/cam0/image_raw"));
   std::string cam1_topic(vk::param<std::string>(pnh_, "cam1_topic", "/cam1/image_raw"));
   image_transport::ImageTransport it(nh);
-  image_transport::SubscriberFilter sub0(it, cam0_topic, 1000, std::string("raw"));
-  image_transport::SubscriberFilter sub1(it, cam1_topic, 1000, std::string("raw"));
-  ExactSync sync_sub(ExactPolicy(1000), sub0, sub1);
-  sync_sub.registerCallback(boost::bind(&svo::SvoInterface::stereoCallback, this, _1, _2));
+  ROS_INFO_STREAM("cam0_topic:" << cam0_topic << " cam1_topic:" << cam1_topic);
+
+  image_transport::TransportHints hints1("compressed");
+  image_transport::TransportHints hints2("compressed");
+  // image_transport::SubscriberFilter sub0(it, cam0_topic, 1000, hints1);
+  // image_transport::SubscriberFilter sub1(it, cam1_topic, 1000, hints2);
+
+  message_filters::Subscriber<sensor_msgs::CompressedImage> sub0(nh, cam0_topic, 1);
+  message_filters::Subscriber<sensor_msgs::CompressedImage> sub1(nh, cam1_topic, 1);
+  ROS_INFO_STREAM("cam0_topic:" << cam0_topic << " cam1_topic:" << cam1_topic);
+  // image_transport::SubscriberFilter sub0(it, cam0_topic, 1000, TransportHints());
+  // image_transport::SubscriberFilter sub1(it, cam1_topic, 1000, std::string("raw"));
+  mySync sync_sub(mySyncPolicy(1000), sub0, sub1);
+  sync_sub.registerCallback(boost::bind(&svo::SvoInterface::stereoCompressedCallback, this, _1, _2));
 
   while(ros::ok() && !quit_)
   {

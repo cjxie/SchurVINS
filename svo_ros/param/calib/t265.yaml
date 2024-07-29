@@ -1,0 +1,90 @@
+label: "t265"
+id: 412eab8e4058621f7036b5e765dfe812
+cameras:
+- camera:
+    label: cam0
+    id: 54812562fa109c40fe90b29a59dd7798
+    line-delay-nanoseconds: 0
+    image_height: 800
+    image_width: 848
+    type: pinhole
+    intrinsics:
+      cols: 1
+      rows: 4
+      data: [285.3284912109375, 285.3135986328125, 418.63018798828125, 400.7213134765625]
+    distortion:
+      type: equidistant  
+      parameters:
+        cols: 1
+        rows: 4
+        data: [-0.004832874052226543, 0.03613068163394928, -0.03420783951878548,
+    0.005285751074552536]
+  T_B_C:
+    cols: 4
+    rows: 4
+    data: [-0.99987501, -0.00109594,  0.01577225,  0.02174348,
+           0.00118505, -0.99998339,  0.00564137,  0.03722544,
+           0.01576581,  0.00565936,  0.9998597,   0.00667348,
+           0.        ,  0.        ,  0.        ,  1.        ]
+    # data: [  -0.999954,         0.00259471,       0.00920993,  0.0107000004500151,  
+    #         -0.0026006,       -0.999996,        -0.000627569, 1.13686837721616e-12,   
+    #         0.00920826,      -0.000651492,      0.999957, 1.45519152283669e-11, 
+    #         0, 0, 0, 1]
+- camera:
+    label: cam1
+    id: 54812562fa109c40fe90b29a59dd7723
+    line-delay-nanoseconds: 0
+    image_height: 800
+    image_width: 848
+    type: pinhole
+    intrinsics:
+      cols: 1
+      rows: 4
+      data: [286.0035095214844, 285.9638977050781, 420.6217041015625, 401.93609619140625]
+    distortion:
+      type: equidistant 
+      parameters:
+        cols: 1
+        rows: 4
+        data: [-0.006216922774910927, 0.04097127169370651, -0.03865949064493179, 0.006705055013298988]
+  T_B_C:
+    cols: 4
+    rows: 4
+    data: [-0.99997542,  0.00279429,  0.00642993, -0.04262945,
+          -0.00271176, -0.99991428,  0.01280939,  0.03743333,
+          0.00646517 , 0.01279164,  0.99989728,  0.00709158,
+          0.         , 0.        ,  0.        ,  1.        ]
+    # data: [-0.999996,        -0.00150777,       0.00232091, -0.0537582784891129,    
+    #         0.00151894,      -0.999987,         0.00481774,  0.000213697494473308,  
+    #         0.00231362,       0.00482125,       0.999986, 2.39683977270033e-05, 
+    #         0., 0., 0., 1. ]
+
+imu_params:
+  delay_imu_cam: 0.0
+  max_imu_delta_t: 0.01
+  acc_max: 176.0
+  omega_max: 17
+  # sigma_omega_c: 12.0e-4
+  # sigma_acc_c: 8.0e-3
+  # sigma_omega_bias_c: 0.03
+  # sigma_acc_bias_c: 0.1
+  # sigma_integration: 0.0
+  # g: 9.8082
+  # imu_rate: 800
+
+  sigma_omega_c: 0.004
+  sigma_acc_c: 0.08
+  sigma_omega_bias_c: 2.0e-6
+  sigma_acc_bias_c: 0.00004
+  sigma_integration: 0.0
+  g: -9.81007
+  imu_rate: 200
+
+imu_initialization:
+  velocity: [0.0, 0, 0.0]
+  omega_bias: [0.0, 0, 0.0]
+  acc_bias: [0.0, 0.0, 0.0]
+  velocity_sigma: 2.0
+  omega_bias_sigma: 0.01
+  acc_bias_sigma: 0.1
+

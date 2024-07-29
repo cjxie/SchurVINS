@@ -6,6 +6,8 @@
 #include <std_msgs/String.h>    // user-input
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
+#include <sensor_msgs/CompressedImage.h>
+// #include <compressed_image_transport/compressed_subscriber.h>
 
 
 #include <svo/common/types.h>
@@ -82,6 +84,9 @@ public:
   void stereoCallback(
       const sensor_msgs::ImageConstPtr& msg0,
       const sensor_msgs::ImageConstPtr& msg1);
+  void stereoCompressedCallback(
+    const sensor_msgs::CompressedImageConstPtr& msg0,
+    const sensor_msgs::CompressedImageConstPtr& msg1);
   void imuCallback(const sensor_msgs::ImuConstPtr& imu_msg);
   void inputKeyCallback(const std_msgs::StringConstPtr& key_input);
 
